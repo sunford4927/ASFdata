@@ -164,15 +164,19 @@ HCURSOR CASFdataDlg::OnQueryDragIcon()
 void CASFdataDlg::OnBnClickedButton1()
 {
 	char* cBuf = NULL;
+	char *aBuf = NULL;
+	char* bBuf = NULL;
+	aBuf = (char*)malloc(sizeof(char) * 256);
+	memset(aBuf, 0x00, sizeof(aBuf));
+	bBuf = (char*)malloc(sizeof(char) * 256);
+	memset(bBuf, 0x00, sizeof(bBuf));
 	cBuf = (char*)malloc(sizeof(char) * 256);
 	memset(cBuf, 0x00, sizeof(cBuf));
-	CString test;
 	//GetCurrentDirectoryA(50,cBuf);
-	GetPrivateProfileStringA("Data", "name", "default", cBuf, 256, "./info.ini");
-	GetPrivateProfileStringA("Data", "name", "default", cBuf, 256, "./info.ini");
-	GetPrivateProfileStringA("Data", "AutoRun", "default", cBuf, 256, "./info.ini");
-	printf("Value : %s", cBuf);
-	GetPrivateProfileSection
+	GetPrivateProfileStringA("Total RunTime", "name", "default", aBuf, 256, "./info.ini");
+	GetPrivateProfileStringA("Total CutTime", "name", "default", bBuf, 256, "./info.ini");
+	GetPrivateProfileStringA("Data", "code", "default", cBuf, 256, "./info.ini");
+	printf("aBuf : %s\nbBuf : %s\ncBuf : %s\n", aBuf,bBuf,cBuf);
 }
 
 
