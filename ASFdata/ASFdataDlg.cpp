@@ -10,6 +10,7 @@
 #include <locale.h> // 글자 깨짐 방지
 #include <Windows.h>
 #include <iostream>
+#include <vector>
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -50,12 +51,19 @@ END_MESSAGE_MAP()
 
 // CASFdataDlg 대화 상자
 
-
-
 CASFdataDlg::CASFdataDlg(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(IDD_ASFDATA_DIALOG, pParent)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+	m_IsRun = FALSE;
+	m_IsShow = FALSE;
+	m_SaveMode = 0;
+	m_Ip = "";
+	m_Port = 0;
+	m_Interval = 0;
+	m_Dir ="";
+	m_TryCnt = 0;
+	m_Path = "./info/info.ini";
 }
 
 void CASFdataDlg::DoDataExchange(CDataExchange* pDX)
@@ -105,7 +113,10 @@ BOOL CASFdataDlg::OnInitDialog()
 	// TODO: 여기에 추가 초기화 작업을 추가합니다.
 	m_tpMData = new MAP_TData;
 	m_tpBMData = new MAP_TBData;
+
 	ASF_vInitdata();
+
+
 
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
 }
@@ -163,24 +174,115 @@ HCURSOR CASFdataDlg::OnQueryDragIcon()
 
 void CASFdataDlg::OnBnClickedButton1()
 {
-	char* cBuf = NULL;
-	char *aBuf = NULL;
-	char* bBuf = NULL;
-	aBuf = (char*)malloc(sizeof(char) * 256);
-	memset(aBuf, 0x00, sizeof(aBuf));
-	bBuf = (char*)malloc(sizeof(char) * 256);
-	memset(bBuf, 0x00, sizeof(bBuf));
-	cBuf = (char*)malloc(sizeof(char) * 256);
-	memset(cBuf, 0x00, sizeof(cBuf));
-	//GetCurrentDirectoryA(50,cBuf);
-	GetPrivateProfileStringA("Total RunTime", "name", "default", aBuf, 256, "./info.ini");
-	GetPrivateProfileStringA("Total CutTime", "name", "default", bBuf, 256, "./info.ini");
-	GetPrivateProfileStringA("Data", "code", "default", cBuf, 256, "./info.ini");
-	printf("aBuf : %s\nbBuf : %s\ncBuf : %s\n", aBuf,bBuf,cBuf);
+	IniLoad();
 }
 
 
+void CASFdataDlg::IniLoad()
+{
+	TCHAR buffer[250]; // 섹션 이름을 저장할 버퍼
+	std::vector<CString> sections; // 섹션 이름을 저장할 벡터
 
+	// INI 파일로부터 섹션 이름들을 가져옴
+	DWORD size = GetPrivateProfileSectionNames(buffer, sizeof(buffer), m_Path);
+	if (size > 0)
+	{
+		// 섹션 이름들을 파싱하여 벡터에 저장
+		LPTSTR pSection = buffer;
+		while (*pSection)
+		{
+			sections.push_back(pSection);
+			pSection += _tcslen(pSection) + 1;
+		}
+		// 각 섹션에 대해 키와 값을 읽음
+		for (const CString& section : sections)
+		{
+			MapInfo info;
+			TCHAR keyBuffer[255]; // 키 이름을 저장할 버퍼
+			// 섹션에 속한 키들을 가져옴
+			DWORD keySize;
+			keySize = GetPrivateProfileString(section, nullptr, _T(""), keyBuffer, sizeof(keyBuffer), m_Path);
+			if (keySize > 0)
+			{
+				// 키와 값을 출력
+				LPTSTR pKey = keyBuffer;
+				while (*pKey)
+				{
+					TCHAR valueBuffer[250]; // 값을 저장할 버퍼
+					// 키에 해당하는 값을 가져옴
+					GetPrivateProfileString(section, pKey, _T(""), valueBuffer, sizeof(valueBuffer), m_Path);
+					// 키와 값을 출력
+					CString key(pKey);
+					CString value(valueBuffer);
+
+					if (section == "Init") { InitSave(key, value); }
+					else {
+						getDataItem(section, key, value, &info);
+					}
+					printf(("Section: %S\nKey: %S\nValue: %S\n"), section, key, value);
+					pKey += _tcslen(pKey) + 1;
+				}
+			}
+		}
+	}
+}
+
+void CASFdataDlg::getDataItem(CString section, CString key, CString value, MapInfo*info)
+{
+	CStringArray dataArray;
+	int valueCnt = ASF_vSplit(value, _T(","), dataArray);
+	int ch = 0;
+	if (valueCnt > 1)
+	{
+		if (dataArray.GetAt(0).Find(L"[") != -1 )
+		{
+			CString temp = dataArray.GetAt(0).Right(2);
+			ch = _ttoi(temp.Left(1));
+		}
+	}
+	info->ch = ch;
+	if (valueCnt == 2)
+	{
+		info->text = section;
+		info->name = getMapName(dataArray.GetAt(0));
+		info->addr = _ttoi(dataArray.GetAt(1));
+		mList[TYPE_3264].AddTail(*info);
+	}
+	else if (valueCnt == 3)
+	{
+		info->text = section;
+		info->name = getMapName(dataArray.GetAt(0));
+		info->addr = _ttoi(dataArray.GetAt(1));
+		info->bit = _ttoi(dataArray.GetAt(2));
+		mList[TYPE_BIT].AddTail(*info);
+	}
+	else { 
+		info->format = value; 
+	}
+}
+
+void CASFdataDlg::InitSave(CString key, CString value)
+{
+	if (key == "AutoRun") 
+	{ 
+		if (value.Compare(_T("yes"))==0) 
+		{ 
+			m_IsRun = true; 
+		} 
+		else { m_IsRun = false; }
+	}
+	else if (key == "SHOW")
+	{
+		if (value == "yes") { m_IsShow = true; }
+		else { m_IsShow = false; }
+	}
+	else if (key == "SaveMode") { m_SaveMode = _ttoi(value); }
+	else if (key == "IP") { m_Ip = value; }
+	else if (key == "PORT") { m_Port = _ttoi(value); }
+	else if (key == "Interval") { m_Interval = _ttoi(value); }
+	else if (key == "Try Count") { m_TryCnt = _ttoi(value); }
+	else if (key == "Dir") { m_Dir = value; }
+}
 // 
 // battery backup map data structure
 
@@ -202,10 +304,10 @@ void CASFdataDlg::OnBnClickedButton1()
 //	case HX_BR:
 //	case HX_DEVICE:
 //	case HX_R:
-//	case HX_SYSREADY:
-//		//        nMapType = MAP32;
-//		return MAP32;
-//		break;
+//		//case HX_SYSREADY:
+//		//	//        nMapType = MAP32;
+//		//	return MAP32;
+//		//	break;
 //	case HX_PA:
 //	case HX_PI:
 //	case HX_PM:
@@ -217,12 +319,86 @@ void CASFdataDlg::OnBnClickedButton1()
 //	case HX_MGV:
 //	case HX_B:
 //	case HX_SN:
-//	case HX_MGN:
-//		//        nMapType = MAP64;
-//		return MAP64;
-//		break;
+//		//case HX_MGN:
+//		//	//        nMapType = MAP64;
+//		//	return MAP64;
+//		//	break;
+//		//}
 //	}
 //}
+
+
+int CASFdataDlg::getMapName(CString value)
+{
+	int name = -1;
+	if (value.Find(L"[") != -1)
+	{
+		value = value.Left(value.GetLength() - 3);
+	}
+
+	if (value.MakeUpper() == "X") {
+		name = HX_X;
+	}
+	else if (value.MakeUpper() == "Y")  {
+		name = HX_Y;
+	}
+	else if (value.MakeUpper() == "G") {
+		name = HX_G;
+	}
+	else if (value.MakeUpper() == "F") {
+		name = HX_F;
+	}
+	else if (value.MakeUpper() == "R") {
+		name = HX_R;
+	}
+	else if (value.MakeUpper() == "PA") {
+		name = HX_PA;
+	}
+	else if (value.MakeUpper() == "PI") {
+		name = HX_PI;
+	}
+	else if (value.MakeUpper() == "PM") {
+		name = HX_PM;
+	}
+	else if (value.MakeUpper() == "PP") {
+		name = HX_PP;
+	}
+	else if (value.MakeUpper() == "PU") {
+		name = HX_PU;
+	}
+	else if (value.MakeUpper() == "PS") {
+		name = HX_PS;
+	}
+	else if (value.MakeUpper() == "SV") {
+		name = HX_SV;
+	}
+	else if (value.MakeUpper() == "ML") {
+		name = HX_ML;
+	}
+	else if (value.MakeUpper() == "MGV")  {
+		name = HX_MGV;
+	}
+	else if (value.MakeUpper() == "B") {
+		name = HX_B;
+	}
+	else if (value.MakeUpper() == "T") {
+		name = HX_T;
+	}
+	else if (value.MakeUpper() == "C") {
+		name = HX_C;
+	}
+	else if (value.MakeUpper() == "D") {
+		name = HX_D;
+	}
+	else if (value.MakeUpper() == "SN") {
+		name = HX_SN;
+	}
+	else if (value.MakeUpper() == "MGN") {
+		name = HX_MGN;
+	}
+
+	return name;
+}
 
 
 
@@ -270,7 +446,7 @@ S32 CASFdataDlg::ASF_nWndProc()
 }
 void CASFdataDlg::ASF_vKeyData() {}
 
-void CASFdataDlg::ASF_vSplit(CString value, CString phraser, CStringArray& strs)
+int CASFdataDlg::ASF_vSplit(CString value, CString phraser, CStringArray& strs)
 {
 	int count = 0;
 
@@ -292,8 +468,11 @@ void CASFdataDlg::ASF_vSplit(CString value, CString phraser, CStringArray& strs)
 		else
 		{
 			length = 0;
+			strs.Add(tempStr);
+			count++;
 		}
 	}
+	return count;
 }
 
 
@@ -318,4 +497,15 @@ CString CASFdataDlg::time(int value)
 	data.Format(_T("%02d:%02d:%02d"), h, m, s);
 
 	return data;
+}
+
+void CASFdataDlg::GetMapData()
+{
+	CString data;
+
+}
+
+void CASFdataDlg::SaveData()
+{
+	if (m_SaveMode == 0);
 }

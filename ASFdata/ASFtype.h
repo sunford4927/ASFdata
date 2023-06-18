@@ -51,3 +51,34 @@ typedef int					B32;		// 4  byte : -2,147,483,648				-> 2,147,483,647
 #define MAP_MAX_MGV     100         // MGV MAP
 #define MAP_MAX_MGN     500         // MGN MAP
 #define MAP_MAX_B       3000        // B MAP
+
+
+
+// HX Map
+#define	HX_X				100
+#define	HX_Y				101
+#define	HX_G				102
+#define	HX_F				103
+#define	HX_SR				104
+#define	HX_PA				105 // double
+#define	HX_PI				106 // double
+#define	HX_PM				107 // double
+#define	HX_PP				108 // double
+#define	HX_PU				109 // double
+#define	HX_PS				110 // double
+#define	HX_SV				111 // double
+#define	HX_ML				112 // double
+#define	HX_MGV				113 // double
+#define	HX_B				114 // double
+
+// HX BMap
+#define	HX_T				115
+#define	HX_C				116
+#define	HX_D				117
+#define	HX_BR				118 // double
+#define	HX_SN				119 // double
+#define	HX_MGN				120 // double
+
+
+#define	HX_DEVICE           129
+#define	HX_R                140
