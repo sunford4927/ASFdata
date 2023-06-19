@@ -216,20 +216,50 @@ void CASFdataDlg::IniLoad()
 				LPTSTR pKey = keyBuffer;
 				while (*pKey)
 				{
-					TCHAR valueBuffer[250]; // 값을 저장할 버퍼
-					// 키에 해당하는 값을 가져옴
-					GetPrivateProfileString(section, pKey, _T(""), valueBuffer, sizeof(valueBuffer), m_Path);
-					// 키와 값을 출력
-					CString key(pKey);
-					CString value(valueBuffer);
+					if (section == "Init")
+					{
+						// 키에 해당하는 값을 가져옴
+						CString key(pKey);
+						TCHAR valueBuffer[60];
+						GetPrivateProfileString(section, pKey, _T(""), valueBuffer, sizeof(valueBuffer), m_Path);
+						CString value(valueBuffer);
 
-					if (section == "Init") { InitSave(key, value); }
-					else {
-						getDataItem(section, key, value, &info);
+						pKey += _tcslen(pKey) + 1;
+						InitSave(key, value);
 					}
-					pKey += _tcslen(pKey) + 1;
-					
+					else { break; }
 				}
+				if (section != "Init")
+				{
+					TCHAR typeBuffer[40]; // 값을 저장할 버퍼
+					TCHAR codeBuffer[30];
+					TCHAR idxBuffer[4];
+					TCHAR chBuffer[4];
+					TCHAR bitBuffer[4];
+
+					GetPrivateProfileString(section, _T("Type"), _T(""), typeBuffer, sizeof(typeBuffer), m_Path);
+					GetPrivateProfileString(section, _T("Code"), _T(""), codeBuffer, sizeof(codeBuffer), m_Path);
+					GetPrivateProfileString(section, _T("Idx"), _T("0"), idxBuffer, sizeof(idxBuffer), m_Path);
+					GetPrivateProfileString(section, _T("Ch"), _T("0"), chBuffer, sizeof(chBuffer), m_Path);
+					GetPrivateProfileString(section, _T("Bit"), _T("-1"), bitBuffer, sizeof(bitBuffer), m_Path);
+
+					// 키와 값을 출력
+					CString iniType(typeBuffer);
+					CString iniCode(codeBuffer);
+					CString iniIdx(idxBuffer);
+					CString iniCh(chBuffer);
+					CString iniBit(bitBuffer);
+
+					info.text = section;
+					info.name = getMapName(iniCode);
+					info.ch = _ttoi(iniCh);
+					info.addr = _ttoi(iniIdx);
+					info.bit = _ttoi(iniBit);
+					info.format = iniType;
+
+					AddDataItem(&info);
+				}
+
 
 			}
 		}
@@ -237,37 +267,14 @@ void CASFdataDlg::IniLoad()
 	SaveData();
 }
 
-void CASFdataDlg::getDataItem(CString section, CString key, CString value, MapInfo*info)
+void CASFdataDlg::AddDataItem(MapInfo*info)
 {
-	CStringArray dataArray;
-	int valueCnt = ASF_vSplit(value, _T(","), dataArray);
-	int ch = 0;
-	if (valueCnt > 1)
-	{
-		if (dataArray.GetAt(0).Find(L"[") != -1 )
-		{
-			CString temp = dataArray.GetAt(0).Right(2);
-			ch = _ttoi(temp.Left(1));
-		}
-	}
-	info->ch = ch;
-	if (valueCnt == 2)
-	{
-		info->text = section;
-		info->name = getMapName(dataArray.GetAt(0));
-		info->addr = _ttoi(dataArray.GetAt(1));
-		mList[TYPE_3264].AddTail(*info);
-	}
-	else if (valueCnt == 3)
-	{
-		info->text = section;
-		info->name = getMapName(dataArray.GetAt(0));
-		info->addr = _ttoi(dataArray.GetAt(1));
-		info->bit = _ttoi(dataArray.GetAt(2));
+	if (info->bit != -1){
 		mList[TYPE_BIT].AddTail(*info);
 	}
-	else { 
-		info->format = value; 
+	else
+	{
+		mList[TYPE_3264].AddTail(*info);
 	}
 }
 
@@ -293,19 +300,19 @@ void CASFdataDlg::InitSave(CString key, CString value)
 	else if (key == "Try Count") { m_TryCnt = _ttoi(value); }
 	else if (key == "Dir") { m_Dir = value; }
 }
-// 
-// battery backup map data structure
 
-
-//
-int CASFdataDlg::hxMapType(MapInfo info)
+double CASFdataDlg::hxMapType(MapInfo info)
 {
-	//    int nMapType = 0;
-
 	switch (info.name)
 	{
 	case HX_X:
-		return getBit32(m_tpMData->X[info.addr], info.bit);
+		if (info.bit == 0)
+		{
+			return m_tpMData->X[info.addr];
+		}
+		else {
+			return getBit32(m_tpMData->X[info.addr], info.bit);
+		}
 		break;
 	case HX_Y:
 		return getBit32(m_tpMData->Y[info.addr], info.bit);
@@ -467,45 +474,14 @@ int CASFdataDlg::setBit32(int data, int bit, int onoff)
 	return data;
 }
 
-
-int CASFdataDlg::ASF_vSplit(CString value, CString phraser, CStringArray& strs)
-{
-	int count = 0;
-
-	CString tempStr = value;
-
-	int length = value.GetLength();
-
-	while (length)
-	{
-		int find = tempStr.Find(phraser);
-		if (find != -1)
-		{
-			CString temp = tempStr.Left(find);
-			int varLen = _tcslen(phraser);
-			strs.Add(tempStr.Left(find));
-			tempStr = tempStr.Mid(find + varLen);
-			count++;
-		}
-		else
-		{
-			length = 0;
-			strs.Add(tempStr);
-			count++;
-		}
-	}
-	return count;
-}
-
-
 void CASFdataDlg::ASF_vInitdata()
 {
-	m_tpBMData->SN[0][2] = 2244567851;
-	m_tpBMData->SN[0][0] = 5485648752;
-	m_tpBMData->SN[0][1] = 2341523441;
+	m_tpBMData->SN[0][2] = (double)2457851;
+	m_tpBMData->SN[0][0] = (double)5548752;
+	m_tpBMData->SN[0][1] = (double)4523441;
 	m_tpMData->PS[0][31] = 1.2348;
 	m_tpMData->PS[1][31] = 4.6548;
-	m_tpMData->X[200] = 0101;
+	m_tpMData->X[200] = (unsigned int)0010101011010101010101;
 }
 
 
@@ -513,32 +489,23 @@ void CASFdataDlg::ASF_vInitdata()
 CString CASFdataDlg::GetMapData(int type, MapInfo* info)
 {
 	CString data;
-
-	int ch = info->ch;
-	int name = info->name;
-	int addr = info->addr;
-
-	int bit = info->bit;
 	double dVal = 0;
-
 
 	switch (type) {
 	case TYPE_3264:
 		dVal = hxMapType(*info);
 		break;
 	case TYPE_BIT:
-		if (getBit32(name, bit) == 1) {
-			dVal = 1;
-		}
-		else {
-			dVal = 0;
-		}
+		double bit = hxMapType(*info);
+		if (bit == 1) {	dVal = 1;}
+
+		else {	dVal = 0;	}
 		break;
 	}
 
 	if (info->format.Compare(_T("time"))==0)
 	{
-		CString currentDate = GetTime(info);
+		CString currentDate = time((int)dVal);
 		data += currentDate;
 	}
 	else if (info->format.Compare(_T("%d")) == 0) {
@@ -547,7 +514,6 @@ CString CASFdataDlg::GetMapData(int type, MapInfo* info)
 	else {
 		data.Format(_T("%.3f"), dVal);
 	}
-
 	return data;
 }
 

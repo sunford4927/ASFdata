@@ -164,7 +164,7 @@ private:
 	void ASF_vKeyData();
 
 
-	int hxMapType(const MapInfo info);
+	double hxMapType(const MapInfo info);
 	int getBit32(int data, int bit);
 	int setBit32(int data, int bit, int onoff);
 	
@@ -179,7 +179,7 @@ private:
 	void InitSave(CString key, CString value);
 	CList<MapInfo>  mList[TYPE_MAX];
 	int getMapName(CString value);
-	void getDataItem(CString section, CString key, CString value, MapInfo *info);
+	void AddDataItem(MapInfo *info);
 	CString GetMapData(int type, MapInfo* info);
 	void SaveFile(CString data);
 	char* ToChar(CString value);

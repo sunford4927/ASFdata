@@ -12,3 +12,66 @@ AxisName[0=1.000
 AxisName[1=4.000
 X200.02=1
 
+Total RunTime=682:44:11
+Total CutTime=1541:19:12
+CutTime=1256:30:41
+X200.02=0
+
+X200.02=0
+
+Total RunTime=682:44:11
+Total CutTime=1541:19:12
+CutTime=1256:30:41
+X200.02=0
+
+Total RunTime=682:44:11
+Total CutTime=1541:19:12
+CutTime=1256:30:41
+X200.02=0
+
+X200.02=0
+
+X200.02=0
+
+Total RunTime=682:44:11
+Total CutTime=1541:19:12
+CutTime=1256:30:41
+X200.02=0
+
+Total RunTime=682:44:11
+Total CutTime=1541:19:12
+CutTime=1256:30:41
+X200.02=0
+
+Total RunTime=682:44:11
+Total CutTime=1541:19:12
+CutTime=1256:30:41
+X200.02=0
+
+X200.02=0
+
+X200.02=0
+
+X200.02=0
+
+Total RunTime=682:44:11
+Total CutTime=1541:19:12
+CutTime=1256:30:41
+X200.02=0
+
+X200.02=0
+
+Total RunTime=682:44:11
+Total CutTime=1541:19:12
+CutTime=1256:30:41
+AxisName[0=1.000
+AxisName[1=4.000
+X200.02=0
+
+Total RunTime=682:44:11
+Total CutTime=1541:19:12
+CutTime=1256:30:41
+AxisName[0=1.235
+AxisName[1=4.655
+X200.02=0
+
