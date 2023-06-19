@@ -1,7 +1,9 @@
 ﻿
 // ASFdataDlg.cpp: 구현 파일
 //
-
+#pragma warning(disable:4996) // C4996 에러를 무시
+//#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
 #include "pch.h"
 #include "framework.h"
 #include "ASFdata.h"
@@ -11,6 +13,7 @@
 #include <Windows.h>
 #include <iostream>
 #include <vector>
+#include <time.h>
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -54,6 +57,9 @@ END_MESSAGE_MAP()
 CASFdataDlg::CASFdataDlg(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(IDD_ASFDATA_DIALOG, pParent)
 {
+	m_tpMData = new MAP_TData;
+	m_tpBMData = new MAP_TBData;
+	ASF_vInitdata();
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 	m_IsRun = FALSE;
 	m_IsShow = FALSE;
@@ -64,6 +70,9 @@ CASFdataDlg::CASFdataDlg(CWnd* pParent /*=nullptr*/)
 	m_Dir ="";
 	m_TryCnt = 0;
 	m_Path = "./info/info.ini";
+	InItStruct(&m_MapInfo);
+	IniLoad();
+
 }
 
 void CASFdataDlg::DoDataExchange(CDataExchange* pDX)
@@ -111,10 +120,9 @@ BOOL CASFdataDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 작은 아이콘을 설정합니다.
 
 	// TODO: 여기에 추가 초기화 작업을 추가합니다.
-	m_tpMData = new MAP_TData;
-	m_tpBMData = new MAP_TBData;
 
-	ASF_vInitdata();
+
+
 
 
 
@@ -174,15 +182,14 @@ HCURSOR CASFdataDlg::OnQueryDragIcon()
 
 void CASFdataDlg::OnBnClickedButton1()
 {
-	IniLoad();
+		IniLoad();
 }
 
 
 void CASFdataDlg::IniLoad()
 {
 	TCHAR buffer[250]; // 섹션 이름을 저장할 버퍼
-	std::vector<CString> sections; // 섹션 이름을 저장할 벡터
-
+	CStringArray sections;
 	// INI 파일로부터 섹션 이름들을 가져옴
 	DWORD size = GetPrivateProfileSectionNames(buffer, sizeof(buffer), m_Path);
 	if (size > 0)
@@ -191,13 +198,14 @@ void CASFdataDlg::IniLoad()
 		LPTSTR pSection = buffer;
 		while (*pSection)
 		{
-			sections.push_back(pSection);
+			sections.Add(pSection);
 			pSection += _tcslen(pSection) + 1;
 		}
 		// 각 섹션에 대해 키와 값을 읽음
-		for (const CString& section : sections)
+		for (int i=0; i<sections.GetCount(); i++)
 		{
-			MapInfo info;
+			CString section = sections.GetAt(i);
+			MapInfo info = m_MapInfo;
 			TCHAR keyBuffer[255]; // 키 이름을 저장할 버퍼
 			// 섹션에 속한 키들을 가져옴
 			DWORD keySize;
@@ -219,12 +227,14 @@ void CASFdataDlg::IniLoad()
 					else {
 						getDataItem(section, key, value, &info);
 					}
-					printf(("Section: %S\nKey: %S\nValue: %S\n"), section, key, value);
 					pKey += _tcslen(pKey) + 1;
+					
 				}
+
 			}
 		}
 	}
+	SaveData();
 }
 
 void CASFdataDlg::getDataItem(CString section, CString key, CString value, MapInfo*info)
@@ -288,44 +298,80 @@ void CASFdataDlg::InitSave(CString key, CString value)
 
 
 //
-//int CASFdataDlg::hxMapType(int nMapName)
-//{
-//	//    int nMapType = 0;
-//	switch (nMapName)
-//	{
-//	case HX_X:
-//	case HX_Y:
-//	case HX_G:
-//	case HX_F:
-//	case HX_SR:
-//	case HX_T:
-//	case HX_C:
-//	case HX_D:
-//	case HX_BR:
-//	case HX_DEVICE:
-//	case HX_R:
-//		//case HX_SYSREADY:
-//		//	//        nMapType = MAP32;
-//		//	return MAP32;
-//		//	break;
-//	case HX_PA:
-//	case HX_PI:
-//	case HX_PM:
-//	case HX_PP:
-//	case HX_PU:
-//	case HX_PS:
-//	case HX_SV:
-//	case HX_ML:
-//	case HX_MGV:
-//	case HX_B:
-//	case HX_SN:
-//		//case HX_MGN:
-//		//	//        nMapType = MAP64;
-//		//	return MAP64;
-//		//	break;
-//		//}
-//	}
-//}
+int CASFdataDlg::hxMapType(MapInfo info)
+{
+	//    int nMapType = 0;
+
+	switch (info.name)
+	{
+	case HX_X:
+		return getBit32(m_tpMData->X[info.addr], info.bit);
+		break;
+	case HX_Y:
+		return getBit32(m_tpMData->Y[info.addr], info.bit);
+		break;
+	case HX_G:
+		return getBit32(m_tpMData->G[info.ch][info.addr], info.bit);
+		break;
+	case HX_F:
+		return getBit32(m_tpMData->F[info.ch][info.addr], info.bit);
+		break;
+	case HX_T:
+		return getBit32(m_tpBMData->T[info.addr], info.bit);
+		break;
+	case HX_C:
+		return getBit32(m_tpBMData->C[info.addr], info.bit);
+		break;
+	case HX_D:
+		return getBit32(m_tpBMData->D[info.addr], info.bit);
+		break;
+
+	case HX_R:
+		if (info.addr > 1024)
+		{
+			return getBit32(m_tpBMData->R[info.addr - 1024], info.bit);
+		}
+		else
+		{
+			return getBit32(m_tpMData->R[info.addr], info.bit);
+		}
+		break;
+
+	case HX_PA:
+		return m_tpMData->PA[info.ch][info.addr];
+		break;
+	case HX_PI:
+		return m_tpMData->PI[info.ch][info.addr];
+		break;
+	case HX_PM:
+		return m_tpMData->PM[info.ch][info.addr];
+		break;
+	case HX_PP:
+		return m_tpMData->PP[info.ch][info.addr];
+		break;
+	case HX_PU:
+		return m_tpMData->PU[info.ch][info.addr];
+		break;
+	case HX_PS:
+		return m_tpMData->PS[info.ch][info.addr];
+		break;
+	case HX_SV:
+		return m_tpMData->SV[info.ch][info.addr];
+		break;
+	case HX_ML:
+		return m_tpMData->ML[info.ch][info.addr][info.bit];
+		break;
+	case HX_MGV:
+		return m_tpMData->MGV[info.ch][info.addr];
+		break;
+	case HX_B:
+		return m_tpMData->B[info.addr];
+		break;
+	case HX_SN:
+		return m_tpBMData->SN[info.ch][info.addr];
+		break;
+	}
+}
 
 
 int CASFdataDlg::getMapName(CString value)
@@ -421,30 +467,6 @@ int CASFdataDlg::setBit32(int data, int bit, int onoff)
 	return data;
 }
 
-// 구조체 만들기 함수
-void CASFdataDlg::ASF_vCreate() 
-{
-
-}
-
-// ini파일의 데이터가 형식에 맞지 않을때 삭제
-void CASFdataDlg::ASF_vDestroy() 
-{}
-
-void CASFdataDlg::ASF_vShow() {}
-
-void CASFdataDlg::ASF_vHide() {}
-
-// 새로고침
-void CASFdataDlg::ASF_vRefresh() {}
-void CASFdataDlg::ASF_vPaint() {}
-void CASFdataDlg::ASF_vSize() {}
-S32 CASFdataDlg::ASF_nWndProc() 
-{
-	S32 s32_bit =0;
-	return s32_bit;
-}
-void CASFdataDlg::ASF_vKeyData() {}
 
 int CASFdataDlg::ASF_vSplit(CString value, CString phraser, CStringArray& strs)
 {
@@ -487,6 +509,67 @@ void CASFdataDlg::ASF_vInitdata()
 }
 
 
+
+CString CASFdataDlg::GetMapData(int type, MapInfo* info)
+{
+	CString data;
+
+	int ch = info->ch;
+	int name = info->name;
+	int addr = info->addr;
+
+	int bit = info->bit;
+	double dVal = 0;
+
+
+	switch (type) {
+	case TYPE_3264:
+		dVal = hxMapType(*info);
+		break;
+	case TYPE_BIT:
+		if (getBit32(name, bit) == 1) {
+			dVal = 1;
+		}
+		else {
+			dVal = 0;
+		}
+		break;
+	}
+
+	if (info->format.Compare(_T("time"))==0)
+	{
+		CString currentDate = GetTime(info);
+		data += currentDate;
+	}
+	else if (info->format.Compare(_T("%d")) == 0) {
+		data.Format(_T("%d\n"), (int)dVal);
+	}
+	else {
+		data.Format(_T("%.3f"), dVal);
+	}
+
+	return data;
+}
+
+void CASFdataDlg::SaveData()
+{
+	CString data;
+	for (int k = 0; k < TYPE_MAX; k++) {
+		for (int i = 0; i < mList[k].GetCount(); i++) {
+			data += mList[k].GetAt(mList[k].FindIndex(i)).text;
+			data += "=";
+			data += GetMapData(k, &mList[k].GetAt(mList[k].FindIndex(i)));
+			data += "\n";
+		}
+	}
+	SaveFile(data);
+}
+
+CString CASFdataDlg::GetTime(MapInfo* info)
+{
+	CString date = time(hxMapType(*info));
+	return date;
+}
 CString CASFdataDlg::time(int value)
 {
 	CString data;
@@ -499,13 +582,71 @@ CString CASFdataDlg::time(int value)
 	return data;
 }
 
-void CASFdataDlg::GetMapData()
+void CASFdataDlg::SaveFile(CString value)
 {
-	CString data;
+	if (m_SaveMode == 0)
+	{
+		FILE* pFile = fopen("data.txt", "at");
+		char* chdata = ToChar(value);
+		fprintf(pFile, chdata);
+		fclose(pFile);
+		delete[] chdata;
+	}
+	else
+	{
+		CString currentDate;
+		CTime data = CTime::GetCurrentTime();
+		currentDate.Format(_T("%d%d%d%d%d%d.txt"), data.GetYear(), data.GetMonth(), data.GetDay(), data.GetHour(), data.GetMinute(), data.GetSecond());
+		char* chtime = ToChar(currentDate);
+		char* chdata = ToChar(value);
+		FILE* pFile = fopen("data_"+*chtime, "wt");
+		fprintf(pFile, chdata);
+		fclose(pFile);
+		delete []chtime;
+		delete[] chdata;
+	}
 
 }
 
-void CASFdataDlg::SaveData()
+char* CASFdataDlg::ToChar(CString value)
 {
-	if (m_SaveMode == 0);
+	char* pchTemp = new char[value.GetLength() + 1];
+	strcpy(pchTemp, CT2A(value));
+	return pchTemp;
 }
+
+void CASFdataDlg::InItStruct(MapInfo* info)
+{
+	info->addr = 0;
+	info->bit = 0;
+	info->ch = 0;
+	info->format = "";
+	info->name = 0;
+	info->text = "";
+}
+
+
+// 구조체 만들기 함수
+void CASFdataDlg::ASF_vCreate()
+{
+
+}
+
+// ini파일의 데이터가 형식에 맞지 않을때 삭제
+void CASFdataDlg::ASF_vDestroy()
+{}
+
+void CASFdataDlg::ASF_vShow() {}
+
+void CASFdataDlg::ASF_vHide() {}
+
+// 새로고침
+void CASFdataDlg::ASF_vRefresh() {}
+void CASFdataDlg::ASF_vPaint() {}
+void CASFdataDlg::ASF_vSize() {}
+S32 CASFdataDlg::ASF_nWndProc()
+{
+	S32 s32_bit = 0;
+	return s32_bit;
+}
+void CASFdataDlg::ASF_vKeyData() {}

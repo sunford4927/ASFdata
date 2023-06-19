@@ -110,7 +110,8 @@ typedef struct MAP_TBData
 	F64 MGN[MAP_MAX_CH][MAP_MAX_MGN];      // global macro non-volitile
 	MAP_TBStr STR;                          // string map
 	TCHAR caStart[10];                      // start flag for init data
-} stMAP_TBData;
+} MAP_TBData;
+
 
 
 typedef struct MapInfo
@@ -135,7 +136,6 @@ public:
 
 	protected:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV 지원입니다.
-
 
 // 구현입니다.
 protected:
@@ -164,23 +164,27 @@ private:
 	void ASF_vKeyData();
 
 
-	int hxMapType(int nMapName);
+	int hxMapType(const MapInfo info);
 	int getBit32(int data, int bit);
 	int setBit32(int data, int bit, int onoff);
 	
 	int ASF_vSplit(CString value, CString phraser, CStringArray& strs);
 	void ASF_vInitdata();
 	CString time(int value);
-
+	void InItStruct(MapInfo* info);
 	
+	MapInfo m_MapInfo;
 	
 	void IniLoad();
 	void InitSave(CString key, CString value);
 	CList<MapInfo>  mList[TYPE_MAX];
 	int getMapName(CString value);
 	void getDataItem(CString section, CString key, CString value, MapInfo *info);
-	void GetMapData();
+	CString GetMapData(int type, MapInfo* info);
+	void SaveFile(CString data);
+	char* ToChar(CString value);
 	void SaveData();
+	CString GetTime(MapInfo* info);
 
 	bool m_IsRun;
 	bool m_IsShow;
