@@ -377,81 +377,83 @@ double CASFdataDlg::hxMapType(MapInfo info)
 	case HX_SN:
 		return m_tpBMData->SN[info.ch][info.addr];
 		break;
+	default:
+		return 1.0;
 	}
 }
-
 
 int CASFdataDlg::getMapName(CString value)
 {
 	int name = -1;
-	if (value.Find(L"[") != -1)
+	if (value.Find(L'[') != -1)
 	{
 		value = value.Left(value.GetLength() - 3);
 	}
-
-	if (value.MakeUpper() == "X") {
+	value.MakeUpper();
+	if (value == "X") {
 		name = HX_X;
 	}
-	else if (value.MakeUpper() == "Y")  {
+	else if (value == "Y") {
 		name = HX_Y;
 	}
-	else if (value.MakeUpper() == "G") {
+	else if (value == "G") {
 		name = HX_G;
 	}
-	else if (value.MakeUpper() == "F") {
+	else if (value == "F") {
 		name = HX_F;
 	}
-	else if (value.MakeUpper() == "R") {
+	else if (value == "R") {
 		name = HX_R;
 	}
-	else if (value.MakeUpper() == "PA") {
+	else if (value == "PA") {
 		name = HX_PA;
 	}
-	else if (value.MakeUpper() == "PI") {
+	else if (value == "PI") {
 		name = HX_PI;
 	}
-	else if (value.MakeUpper() == "PM") {
+	else if (value == "PM") {
 		name = HX_PM;
 	}
-	else if (value.MakeUpper() == "PP") {
+	else if (value == "PP") {
 		name = HX_PP;
 	}
-	else if (value.MakeUpper() == "PU") {
+	else if (value == "PU") {
 		name = HX_PU;
 	}
-	else if (value.MakeUpper() == "PS") {
+	else if (value == "PS") {
 		name = HX_PS;
 	}
-	else if (value.MakeUpper() == "SV") {
+	else if (value == "SV") {
 		name = HX_SV;
 	}
-	else if (value.MakeUpper() == "ML") {
+	else if (value == "ML") {
 		name = HX_ML;
 	}
-	else if (value.MakeUpper() == "MGV")  {
+	else if (value == "MGV") {
 		name = HX_MGV;
 	}
-	else if (value.MakeUpper() == "B") {
+	else if (value == "B") {
 		name = HX_B;
 	}
-	else if (value.MakeUpper() == "T") {
+	else if (value == "T") {
 		name = HX_T;
 	}
-	else if (value.MakeUpper() == "C") {
+	else if (value == "C") {
 		name = HX_C;
 	}
-	else if (value.MakeUpper() == "D") {
+	else if (value == "D") {
 		name = HX_D;
 	}
-	else if (value.MakeUpper() == "SN") {
+	else if (value == "SN") {
 		name = HX_SN;
 	}
-	else if (value.MakeUpper() == "MGN") {
+	else if (value == "MGN") {
 		name = HX_MGN;
 	}
 
 	return name;
 }
+
 
 
 
