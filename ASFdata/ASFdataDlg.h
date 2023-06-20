@@ -152,7 +152,7 @@ public:
 private:
 	MAP_TData* m_tpMData;
 	MAP_TBData* m_tpBMData;
-
+	MAP_TStr* m_tpSTRData;
 	void ASF_vCreate();
 	void ASF_vDestroy();
 	void ASF_vShow();
@@ -163,12 +163,7 @@ private:
 	S32 ASF_nWndProc();
 	void ASF_vKeyData();
 
-
-	double hxMapType(const MapInfo info);
 	int getBit32(int data, int bit);
-	int setBit32(int data, int bit, int onoff);
-	
-	int ASF_vSplit(CString value, CString phraser, CStringArray& strs);
 	void ASF_vInitdata();
 	CString time(int value);
 	void InItStruct(MapInfo* info);
@@ -177,14 +172,20 @@ private:
 	
 	void IniLoad();
 	void InitSave(CString key, CString value);
-	CList<MapInfo>  mList[TYPE_MAX];
+	CList<MapInfo, MapInfo&>  mList[TYPE_MAX];
 	int getMapName(CString value);
 	void AddDataItem(MapInfo *info);
 	CString GetMapData(int type, MapInfo* info);
 	void SaveFile(CString data);
 	char* ToChar(CString value);
 	void SaveData();
-	CString GetTime(MapInfo* info);
+	CString CheckBitType(MapInfo info);
+	double Check3264Type(MapInfo info);
+	CString CheckSTRType(MapInfo);
+	TCHAR *ToTChar(CString value);
+	CString GetPullBit(U32 num);
+	int setBit32(int data, int bit, int onoff);
+	
 
 	bool m_IsRun;
 	bool m_IsShow;

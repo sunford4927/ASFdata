@@ -79,6 +79,23 @@ typedef int					B32;		// 4  byte : -2,147,483,648				-> 2,147,483,647
 #define	HX_SN				119 // double
 #define	HX_MGN				120 // double
 
+#define	HX_STR_AXIS         121
+#define	HX_STR_MACHINE      122
+#define	HX_STR_SEQPROG      123
+#define	HX_STR_ERRPROG      124
+#define	HX_STR_NCPATH       125
+#define	HX_STR_MAINPROG     126
+#define	HX_STR_SUBPROG      127
+#define	HX_STR_MDIPROG      128
 
+#define	HX_DEVICE           129
+
+#define	HX_STR_SYSPATH      130
+#define	HX_STR_ALARMMSG     131
+#define	HX_STR_OPMSG        132
+#define	HX_STR_DATAPATH     133
+#define	HX_STR_PLCFILE      134
+#define	HX_STR_MAPFILE      135
+#define	HX_STR_LANGUAGE     136
 #define	HX_DEVICE           129
 #define	HX_R                140

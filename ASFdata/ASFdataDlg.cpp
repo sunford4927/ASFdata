@@ -59,6 +59,7 @@ CASFdataDlg::CASFdataDlg(CWnd* pParent /*=nullptr*/)
 {
 	m_tpMData = new MAP_TData;
 	m_tpBMData = new MAP_TBData;
+	m_tpSTRData = new MAP_TStr;
 	ASF_vInitdata();
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 	m_IsRun = FALSE;
@@ -240,7 +241,7 @@ void CASFdataDlg::IniLoad()
 					GetPrivateProfileString(section, _T("Type"), _T(""), typeBuffer, sizeof(typeBuffer), m_Path);
 					GetPrivateProfileString(section, _T("Code"), _T(""), codeBuffer, sizeof(codeBuffer), m_Path);
 					GetPrivateProfileString(section, _T("Idx"), _T("0"), idxBuffer, sizeof(idxBuffer), m_Path);
-					GetPrivateProfileString(section, _T("Ch"), _T("0"), chBuffer, sizeof(chBuffer), m_Path);
+					GetPrivateProfileString(section, _T("Ch"), _T("-1"), chBuffer, sizeof(chBuffer), m_Path);
 					GetPrivateProfileString(section, _T("Bit"), _T("-1"), bitBuffer, sizeof(bitBuffer), m_Path);
 
 					// 키와 값을 출력
@@ -250,6 +251,7 @@ void CASFdataDlg::IniLoad()
 					CString iniCh(chBuffer);
 					CString iniBit(bitBuffer);
 
+					if (iniType == "" || iniCode == "") { continue; }
 					info.text = section;
 					info.name = getMapName(iniCode);
 					info.ch = _ttoi(iniCh);
@@ -271,6 +273,9 @@ void CASFdataDlg::AddDataItem(MapInfo*info)
 {
 	if (info->bit != -1){
 		mList[TYPE_BIT].AddTail(*info);
+	}
+	else if (info->format == "%S") {
+		mList[TYPE_STRING].AddTail(*info);
 	}
 	else
 	{
@@ -301,85 +306,170 @@ void CASFdataDlg::InitSave(CString key, CString value)
 	else if (key == "Dir") { m_Dir = value; }
 }
 
-double CASFdataDlg::hxMapType(MapInfo info)
+CString CASFdataDlg::CheckSTRType(MapInfo info)
 {
+	CString data;
+	switch (info.name)
+	{
+	case HX_STR_NCPATH:
+		data = m_tpSTRData->caNCPath[info.ch];
+		break;
+	case HX_STR_PLCFILE:
+		data = m_tpSTRData->caPLCFile;
+		break;
+	case HX_STR_MAPFILE:
+		data = m_tpSTRData->caMAPFile;
+		break;
+	case HX_STR_MAINPROG:
+		data = m_tpSTRData->caMainProg[info.ch];
+		break;
+	case HX_STR_SUBPROG:
+		data = m_tpSTRData->caSubProg[info.ch];
+		break;
+	case HX_STR_ALARMMSG:
+		data = m_tpSTRData->caCurAlarmMsg;
+		break;
+	case HX_STR_OPMSG:
+		data = m_tpSTRData->caCurOpMsg;
+		break;
+	default:
+		data = "잘못된 데이터 입니다.";
+	}
+	return data;
+}
+
+double CASFdataDlg::Check3264Type(MapInfo info)
+{
+	double data;
+	switch (info.name)
+	{
+	case HX_PA:
+		data= m_tpMData->PA[info.ch][info.addr];
+		break;
+	case HX_PI:
+		data = m_tpMData->PI[info.ch][info.addr];
+		break;
+	case HX_PM:
+		data = m_tpMData->PM[info.ch][info.addr];
+		break;
+	case HX_PP:
+		data = m_tpMData->PP[info.ch][info.addr];
+		break;
+	case HX_PU:
+		data = m_tpMData->PU[info.ch][info.addr];
+		break;
+	case HX_PS:
+		data = m_tpMData->PS[info.ch][info.addr];
+		break;
+	case HX_SV:
+		data = m_tpMData->SV[info.ch][info.addr];
+		break;
+	case HX_ML:
+		data = m_tpMData->ML[info.ch][info.addr][info.bit];
+		break;
+	case HX_MGV:
+		data = m_tpMData->MGV[info.ch][info.addr];
+		break;
+	case HX_B:
+		data = m_tpMData->B[info.addr];
+		break;
+	case HX_SN:
+		data = m_tpBMData->SN[info.ch][info.addr];
+		break;
+	default:
+		data = -1;
+	}
+	return data;
+}
+
+CString CASFdataDlg::CheckBitType(MapInfo info)
+{
+	CString data =_T("");
 	switch (info.name)
 	{
 	case HX_X:
 		if (info.bit == 0)
 		{
-			return m_tpMData->X[info.addr];
+			data += GetPullBit(m_tpMData->X[info.addr]);
 		}
 		else {
-			return getBit32(m_tpMData->X[info.addr], info.bit);
+			data.Format(_T("%d"),getBit32(m_tpMData->X[info.addr], info.bit));
 		}
 		break;
 	case HX_Y:
-		return getBit32(m_tpMData->Y[info.addr], info.bit);
+		if (info.bit == 0)
+		{
+			data += GetPullBit(m_tpMData->Y[info.addr]);
+		}
+		else {
+			data.Format(_T("%d"), getBit32(m_tpMData->Y[info.addr], info.bit));
+		}
 		break;
 	case HX_G:
-		return getBit32(m_tpMData->G[info.ch][info.addr], info.bit);
+		if (info.bit == 0)
+		{
+			data += GetPullBit(m_tpMData->G[info.ch][info.addr]);
+		}
+		else {
+			data.Format(_T("%d"), getBit32(m_tpMData->G[info.ch][info.addr], info.bit));
+		}
 		break;
 	case HX_F:
-		return getBit32(m_tpMData->F[info.ch][info.addr], info.bit);
+		if (info.bit == 0)
+		{
+			data += GetPullBit(m_tpMData->F[info.ch][info.addr]);
+		}
+		else {
+			data.Format(_T("%d"), getBit32(m_tpMData->F[info.ch][info.addr], info.bit));
+		}
 		break;
 	case HX_T:
-		return getBit32(m_tpBMData->T[info.addr], info.bit);
+		data.Format(_T("%d"), getBit32(m_tpBMData->T[info.addr], info.bit));
 		break;
 	case HX_C:
-		return getBit32(m_tpBMData->C[info.addr], info.bit);
+		data.Format(_T("%d"), getBit32(m_tpBMData->C[info.addr], info.bit));
 		break;
 	case HX_D:
-		return getBit32(m_tpBMData->D[info.addr], info.bit);
+		data.Format(_T("%d"), getBit32(m_tpBMData->D[info.addr], info.bit));
 		break;
 
 	case HX_R:
 		if (info.addr > 1024)
 		{
-			return getBit32(m_tpBMData->R[info.addr - 1024], info.bit);
+			if (info.bit == 0)
+			{
+				data += GetPullBit(m_tpMData->R[info.addr - 1024]);
+			}
+			else {
+				data.Format(_T("%d"),getBit32(m_tpMData->R[info.addr - 1024], info.bit));
+			}
 		}
 		else
 		{
-			return getBit32(m_tpMData->R[info.addr], info.bit);
+			if (info.bit == 0)
+			{
+				data += GetPullBit(m_tpMData->R[info.addr]);
+			}
+			else {
+				data.Format(_T("%d"), getBit32(m_tpMData->R[info.addr], info.bit));
+			}
 		}
 		break;
-
-	case HX_PA:
-		return m_tpMData->PA[info.ch][info.addr];
-		break;
-	case HX_PI:
-		return m_tpMData->PI[info.ch][info.addr];
-		break;
-	case HX_PM:
-		return m_tpMData->PM[info.ch][info.addr];
-		break;
-	case HX_PP:
-		return m_tpMData->PP[info.ch][info.addr];
-		break;
-	case HX_PU:
-		return m_tpMData->PU[info.ch][info.addr];
-		break;
-	case HX_PS:
-		return m_tpMData->PS[info.ch][info.addr];
-		break;
-	case HX_SV:
-		return m_tpMData->SV[info.ch][info.addr];
-		break;
-	case HX_ML:
-		return m_tpMData->ML[info.ch][info.addr][info.bit];
-		break;
-	case HX_MGV:
-		return m_tpMData->MGV[info.ch][info.addr];
-		break;
-	case HX_B:
-		return m_tpMData->B[info.addr];
-		break;
-	case HX_SN:
-		return m_tpBMData->SN[info.ch][info.addr];
-		break;
 	default:
-		return 1.0;
+		data = "";
 	}
+	return data;
+}
+
+
+CString CASFdataDlg::GetPullBit(U32 num)
+{
+	CString bit2=_T("");
+	for (int i = 31; i >= 0; --i) { //8자리 숫자까지 나타냄
+		int result = num >> i & 1;
+		bit2.AppendFormat(_T("%d"),result);
+	}
+	return bit2;
 }
 
 int CASFdataDlg::getMapName(CString value)
@@ -450,11 +540,30 @@ int CASFdataDlg::getMapName(CString value)
 	else if (value == "MGN") {
 		name = HX_MGN;
 	}
+	else if (value == "STR_NCPATH") {
+		name = HX_STR_NCPATH;
+	}
+	else if (value == "STR_PLC") {
+		name = HX_STR_PLCFILE;
+	}
+	else if (value == "STR_MAP") {
+		name = HX_STR_MAPFILE;
+	}
+	else if (value == "STR_MAINNC") {
+		name = HX_STR_MAINPROG;
+	}
+	else if (value == "STR_SUBNC") {
+		name = HX_STR_SUBPROG;
+	}
+	else if (value == "STR_CURALM") {
+		name = HX_STR_ALARMMSG;
+	}
+	else if (value == "STR_CUROPMSG") {
+		name = HX_STR_OPMSG;
+	}
 
 	return name;
 }
-
-
 
 
 int CASFdataDlg::getBit32(int data, int bit)
@@ -462,19 +571,6 @@ int CASFdataDlg::getBit32(int data, int bit)
 	return ((data >> bit) & 0x01) ? 1 : 0;
 }
 
-int CASFdataDlg::setBit32(int data, int bit, int onoff)
-{
-	onoff = onoff ? 1 : 0;
-
-	long temp = (0x1 << bit);
-	if (onoff) {
-		data |= temp;
-	}
-	else {
-		data &= (~temp);
-	}
-	return data;
-}
 
 void CASFdataDlg::ASF_vInitdata()
 {
@@ -483,38 +579,43 @@ void CASFdataDlg::ASF_vInitdata()
 	m_tpBMData->SN[0][1] = (double)4523441;
 	m_tpMData->PS[0][31] = 1.2348;
 	m_tpMData->PS[1][31] = 4.6548;
-	m_tpMData->X[200] = (unsigned int)0010101011010101010101;
+	m_tpMData->Y[160] = 0xF;
+	m_tpMData->X[200] = (unsigned int)0101;// 65 가 나온 이유는?
+	_tcscpy_s(m_tpSTRData->caNCPath[2], _countof(m_tpSTRData->caNCPath[2]), L"NC 주소입니다.");
+	_tcscpy_s(m_tpSTRData->caPLCFile, _countof(m_tpSTRData->caPLCFile), L"PLC 파일 이름입니다.");
+	_tcscpy_s(m_tpSTRData->caMAPFile, _countof(m_tpSTRData->caMAPFile), L"MAP 파일 이름입니다.");
+	_tcscpy_s(m_tpSTRData->caMainProg[1], _countof(m_tpSTRData->caMainProg[1]), L"MAIN 프로그램");
+	_tcscpy_s(m_tpSTRData->caSubProg[0], _countof(m_tpSTRData->caSubProg[0]), L"SUB 프로그램");
+	_tcscpy_s(m_tpSTRData->caCurAlarmMsg, _countof(m_tpSTRData->caCurAlarmMsg), L"알람 메시지 입니다.");
+	_tcscpy_s(m_tpSTRData->caCurOpMsg, _countof(m_tpSTRData->caPLCFile), L"오피 메시지 입니다.");
 }
-
 
 
 CString CASFdataDlg::GetMapData(int type, MapInfo* info)
 {
-	CString data;
-	double dVal = 0;
-
+	CString data=_T("");
+	double bit =0;
+	if (type != TYPE_STRING && info->ch == -1) { info->ch = 0; }
 	switch (type) {
 	case TYPE_3264:
-		dVal = hxMapType(*info);
+		bit = Check3264Type(*info);
 		break;
 	case TYPE_BIT:
-		double bit = hxMapType(*info);
-		if (bit == 1) {	dVal = 1;}
-
-		else {	dVal = 0;	}
+		data += CheckBitType(*info);
+		break;
+	case TYPE_STRING:
+		data += CheckSTRType(*info);
 		break;
 	}
 
 	if (info->format.Compare(_T("time"))==0)
 	{
-		CString currentDate = time((int)dVal);
+		CString currentDate = time((int)bit);
 		data += currentDate;
 	}
-	else if (info->format.Compare(_T("%d")) == 0) {
-		data.Format(_T("%d\n"), (int)dVal);
-	}
-	else {
-		data.Format(_T("%.3f"), dVal);
+
+	else if(info->format.Find(_T("f")) !=-1) {
+		data.Format(_T("%.3f"), bit);
 	}
 	return data;
 }
@@ -533,11 +634,7 @@ void CASFdataDlg::SaveData()
 	SaveFile(data);
 }
 
-CString CASFdataDlg::GetTime(MapInfo* info)
-{
-	CString date = time(hxMapType(*info));
-	return date;
-}
+
 CString CASFdataDlg::time(int value)
 {
 	CString data;
@@ -554,7 +651,7 @@ void CASFdataDlg::SaveFile(CString value)
 {
 	if (m_SaveMode == 0)
 	{
-		FILE* pFile = fopen("data.txt", "at");
+		FILE* pFile = fopen("data.txt", "w");
 		char* chdata = ToChar(value);
 		fprintf(pFile, chdata);
 		fclose(pFile);
@@ -578,9 +675,16 @@ void CASFdataDlg::SaveFile(CString value)
 
 char* CASFdataDlg::ToChar(CString value)
 {
-	char* pchTemp = new char[value.GetLength() + 1];
-	strcpy(pchTemp, CT2A(value));
-	return pchTemp;
+	char p[50];
+	memset(p, 0, 50);
+	strcpy_s(p, 50, (char*)_bstr_t(value));
+	return p;
+}
+TCHAR* CASFdataDlg::ToTChar(CString value)
+{
+	TCHAR* des = new TCHAR[value.GetLength() + 1]; // 1은 NULL을 위한 여유공간
+	_tcscpy(des, value.GetBuffer(0));
+	return des;
 }
 
 void CASFdataDlg::InItStruct(MapInfo* info)
