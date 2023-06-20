@@ -184,7 +184,7 @@ private:
 	CString CheckSTRType(MapInfo);
 	TCHAR *ToTChar(CString value);
 	CString GetPullBit(U32 num);
-	int setBit32(int data, int bit, int onoff);
+
 	
 
 	bool m_IsRun;

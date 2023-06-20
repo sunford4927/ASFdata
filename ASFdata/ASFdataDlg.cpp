@@ -588,6 +588,14 @@ void CASFdataDlg::ASF_vInitdata()
 	_tcscpy_s(m_tpSTRData->caSubProg[0], _countof(m_tpSTRData->caSubProg[0]), L"SUB 프로그램");
 	_tcscpy_s(m_tpSTRData->caCurAlarmMsg, _countof(m_tpSTRData->caCurAlarmMsg), L"알람 메시지 입니다.");
 	_tcscpy_s(m_tpSTRData->caCurOpMsg, _countof(m_tpSTRData->caPLCFile), L"오피 메시지 입니다.");
+
+	_tcscpy(m_tpSTRData->caNCPath[2], L"NC 주소입니다.");
+	_tcscpy(m_tpSTRData->caPLCFile, L"PLC 파일 이름입니다.");
+	_tcscpy(m_tpSTRData->caMAPFile, L"MAP 파일 이름입니다.");
+	_tcscpy(m_tpSTRData->caMainProg[2], L"MAIN 프로그램");
+	_tcscpy(m_tpSTRData->caSubProg[0], L"SUB 프로그램");
+	_tcscpy(m_tpSTRData->caCurAlarmMsg, L"알람 메시지 입니다.");
+	_tcscpy(m_tpSTRData->caCurOpMsg, L"오피 메시지 입니다.");
 }
 
 
@@ -655,7 +663,6 @@ void CASFdataDlg::SaveFile(CString value)
 		char* chdata = ToChar(value);
 		fprintf(pFile, chdata);
 		fclose(pFile);
-		delete[] chdata;
 	}
 	else
 	{
@@ -667,19 +674,17 @@ void CASFdataDlg::SaveFile(CString value)
 		FILE* pFile = fopen("data_"+*chtime, "wt");
 		fprintf(pFile, chdata);
 		fclose(pFile);
-		delete []chtime;
-		delete[] chdata;
+
 	}
 
 }
 
 char* CASFdataDlg::ToChar(CString value)
 {
-	int length = value.GetLength();
-	char* valueTemp = new char[length + 1];
-	strncpy(valueTemp, value, length);
-	valueTemp[length] = '\0';
-	return valueTemp;
+	char buffer[1024] = { 0 };
+	memset(buffer, 0, 1024);
+	strcpy(buffer, CT2A(value));
+	return buffer;
 }
 TCHAR* CASFdataDlg::ToTChar(CString value)
 {
