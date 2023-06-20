@@ -584,7 +584,7 @@ void CASFdataDlg::ASF_vInitdata()
 	_tcscpy_s(m_tpSTRData->caNCPath[2], _countof(m_tpSTRData->caNCPath[2]), L"NC 주소입니다.");
 	_tcscpy_s(m_tpSTRData->caPLCFile, _countof(m_tpSTRData->caPLCFile), L"PLC 파일 이름입니다.");
 	_tcscpy_s(m_tpSTRData->caMAPFile, _countof(m_tpSTRData->caMAPFile), L"MAP 파일 이름입니다.");
-	_tcscpy_s(m_tpSTRData->caMainProg[1], _countof(m_tpSTRData->caMainProg[1]), L"MAIN 프로그램");
+	_tcscpy_s(m_tpSTRData->caMainProg[2], _countof(m_tpSTRData->caMainProg[2]), L"MAIN 프로그램");
 	_tcscpy_s(m_tpSTRData->caSubProg[0], _countof(m_tpSTRData->caSubProg[0]), L"SUB 프로그램");
 	_tcscpy_s(m_tpSTRData->caCurAlarmMsg, _countof(m_tpSTRData->caCurAlarmMsg), L"알람 메시지 입니다.");
 	_tcscpy_s(m_tpSTRData->caCurOpMsg, _countof(m_tpSTRData->caPLCFile), L"오피 메시지 입니다.");
