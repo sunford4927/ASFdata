@@ -675,10 +675,11 @@ void CASFdataDlg::SaveFile(CString value)
 
 char* CASFdataDlg::ToChar(CString value)
 {
-	char p[50];
-	memset(p, 0, 50);
-	strcpy_s(p, 50, (char*)_bstr_t(value));
-	return p;
+	int length = value.GetLength();
+	char* valueTemp = new char[length + 1];
+	strncpy(valueTemp, value, length);
+	valueTemp[length] = '\0';
+	return valueTemp;
 }
 TCHAR* CASFdataDlg::ToTChar(CString value)
 {
