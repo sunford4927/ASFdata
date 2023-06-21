@@ -184,8 +184,11 @@ private:
 	CString CheckSTRType(MapInfo);
 	TCHAR *ToTChar(CString value);
 	CString GetPullBit(U32 num);
-
-	
+	void SectionLoad(CStringArray *section);
+	bool IsUTF8(const void* pBuffer, long size);
+	void OnSplit(CString value, CString phraser, CStringArray& strs);
+	CString TextInCoderCheck();
+	void GetKoreanData(MapInfo *info, CString title);
 
 	bool m_IsRun;
 	bool m_IsShow;

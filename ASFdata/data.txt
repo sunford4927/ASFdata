@@ -1,7 +1,8 @@
+시간=682:44:11
 Total CutTime=1541:19:12
 CutTime=1256:30:41
-AxisName[0=1.235
-AxisName[1=4.655
+AxisName[0]=1.235
+AxisName[1]=4.655
 Y200.02=00000000000000000000000000001111
 X200.02=0
 NCPath=NC 주소입니다.
