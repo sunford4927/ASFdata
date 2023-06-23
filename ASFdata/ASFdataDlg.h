@@ -190,6 +190,7 @@ private:
 	CString TextInCoderCheck();
 	void GetKoreanData(MapInfo *info, CString title);
 
+
 	bool m_IsRun;
 	bool m_IsShow;
 	int m_SaveMode;

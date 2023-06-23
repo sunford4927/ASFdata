@@ -17,10 +17,13 @@
 #include <atlstr.h> //MFC 사용할수있게 해주는 헤더
 
 #include <iostream>
+#include <regex>
 #include <string>
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
+
+using namespace std;
 
 
 // 응용 프로그램 정보에 사용되는 CAboutDlg 대화 상자입니다.
@@ -66,6 +69,7 @@ CASFdataDlg::CASFdataDlg(CWnd* pParent /*=nullptr*/)
 	m_tpMData = new MAP_TData;
 	m_tpBMData = new MAP_TBData;
 	m_tpSTRData = new MAP_TStr;
+	
 	ASF_vInitdata();
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 	m_IsRun = FALSE;
@@ -442,9 +446,10 @@ bool CASFdataDlg::IsUTF8(const void* pBuffer, long size)
 	return bUTF8;
 }
 
+
+
 void CASFdataDlg::IniLoad()
 {
-	char buffer[4000]; // 섹션 이름을 저장할 버퍼
 	CStringArray sections;
 	// INI 파일로부터 섹션 이름들을 가져옴
 	SectionLoad(&sections);
@@ -459,10 +464,14 @@ void CASFdataDlg::IniLoad()
 		// 섹션에 속한 키들을 가져옴
 		DWORD keySize;
 		keySize = GetPrivateProfileString(section, nullptr, _T(""), keyBuffer, sizeof(keyBuffer), m_Path);
+
+
+
 		if (keySize == 0) {
 			GetKoreanData(&info, section);
 			AddDataItem(&info);
 			continue;
+
 		}
 		// 키와 값을 출력
 		LPTSTR pKey = keyBuffer;
@@ -502,7 +511,10 @@ void CASFdataDlg::IniLoad()
 			CString iniCh(chBuffer);
 			CString iniBit(bitBuffer);
 
-			if (iniType == "" || iniCode == "") { continue; }
+			if (iniType == "" || iniCode == "") { 
+				printf("섹션 : %c\n 값이 확인되지 않습니다\n", section);
+				continue; 
+			}
 			info.text = section;
 			info.name = getMapName(iniCode);
 			info.ch = _ttoi(iniCh);
@@ -580,6 +592,7 @@ CString CASFdataDlg::CheckSTRType(MapInfo info)
 		data = m_tpSTRData->caCurOpMsg;
 		break;
 	default:
+		printf("section : %s\nCheckSTRType 함수 값이 들어가지 않았습니다.\n", info.text);
 		data = "잘못된 데이터 입니다.";
 	}
 	return data;
@@ -624,6 +637,7 @@ double CASFdataDlg::Check3264Type(MapInfo info)
 		data = m_tpBMData->SN[info.ch][info.addr];
 		break;
 	default:
+		printf("section : %s\nCheck3264Type 함수 값이 들어가지 않았습니다.\n", info.text);
 		data = -1;
 	}
 	return data;
@@ -637,7 +651,7 @@ CString CASFdataDlg::CheckBitType(MapInfo info)
 	case HX_X:
 		if (info.bit == 0)
 		{
-			data += GetPullBit(m_tpMData->X[info.addr]);
+			data.Format(_T("%d"), m_tpMData->X[info.addr]);
 		}
 		else {
 			data.Format(_T("%d"),getBit32(m_tpMData->X[info.addr], info.bit));
@@ -646,7 +660,7 @@ CString CASFdataDlg::CheckBitType(MapInfo info)
 	case HX_Y:
 		if (info.bit == 0)
 		{
-			data += GetPullBit(m_tpMData->Y[info.addr]);
+			data.Format(_T("%d"), m_tpMData->Y[info.addr]);
 		}
 		else {
 			data.Format(_T("%d"), getBit32(m_tpMData->Y[info.addr], info.bit));
@@ -655,7 +669,7 @@ CString CASFdataDlg::CheckBitType(MapInfo info)
 	case HX_G:
 		if (info.bit == 0)
 		{
-			data += GetPullBit(m_tpMData->G[info.ch][info.addr]);
+			data.Format(_T("%d"), m_tpMData->G[info.ch][info.addr]);
 		}
 		else {
 			data.Format(_T("%d"), getBit32(m_tpMData->G[info.ch][info.addr], info.bit));
@@ -664,7 +678,7 @@ CString CASFdataDlg::CheckBitType(MapInfo info)
 	case HX_F:
 		if (info.bit == 0)
 		{
-			data += GetPullBit(m_tpMData->F[info.ch][info.addr]);
+			data.Format(_T("%d"), m_tpMData->F[info.ch][info.addr]);
 		}
 		else {
 			data.Format(_T("%d"), getBit32(m_tpMData->F[info.ch][info.addr], info.bit));
@@ -685,7 +699,7 @@ CString CASFdataDlg::CheckBitType(MapInfo info)
 		{
 			if (info.bit == 0)
 			{
-				data += GetPullBit(m_tpMData->R[info.addr - 1024]);
+				data.Format(_T("%d"), m_tpMData->R[info.addr - 1024]);
 			}
 			else {
 				data.Format(_T("%d"),getBit32(m_tpMData->R[info.addr - 1024], info.bit));
@@ -695,7 +709,7 @@ CString CASFdataDlg::CheckBitType(MapInfo info)
 		{
 			if (info.bit == 0)
 			{
-				data += GetPullBit(m_tpMData->R[info.addr]);
+				data.Format(_T("%d"), m_tpMData->R[info.addr]);
 			}
 			else {
 				data.Format(_T("%d"), getBit32(m_tpMData->R[info.addr], info.bit));
@@ -703,6 +717,7 @@ CString CASFdataDlg::CheckBitType(MapInfo info)
 		}
 		break;
 	default:
+		printf("section : %s\nCheckBitType 함수 값이 들어가지 않았습니다.\n", info.text);
 		data = "";
 	}
 	return data;
@@ -827,7 +842,7 @@ void CASFdataDlg::ASF_vInitdata()
 	m_tpMData->PS[0][31] = 1.2348;
 	m_tpMData->PS[1][31] = 4.6548;
 	m_tpMData->Y[160] = 0xF;
-	m_tpMData->X[200] = (unsigned int)0101;// 65 가 나온 이유는?
+	m_tpMData->X[200] = (unsigned int)0101;// 65 가 나온 이유는? = 숫자앞에 0이 들어가면 8진수로 인식이 됩니다
 	_tcscpy_s(m_tpSTRData->caNCPath[2], _countof(m_tpSTRData->caNCPath[2]), "NC 주소입니다.");
 	_tcscpy_s(m_tpSTRData->caPLCFile, _countof(m_tpSTRData->caPLCFile), "PLC 파일 이름입니다.");
 	_tcscpy_s(m_tpSTRData->caMAPFile, _countof(m_tpSTRData->caMAPFile), "MAP 파일 이름입니다.");
@@ -835,7 +850,6 @@ void CASFdataDlg::ASF_vInitdata()
 	_tcscpy_s(m_tpSTRData->caSubProg[0], _countof(m_tpSTRData->caSubProg[0]), "SUB 프로그램");
 	_tcscpy_s(m_tpSTRData->caCurAlarmMsg, _countof(m_tpSTRData->caCurAlarmMsg), "알람 메시지 입니다.");
 	_tcscpy_s(m_tpSTRData->caCurOpMsg, _countof(m_tpSTRData->caPLCFile), "오피 메시지 입니다.");
-
 }
 
 
@@ -852,31 +866,50 @@ CString CASFdataDlg::GetMapData(int type, MapInfo* info)
 		data += CheckBitType(*info);
 		break;
 	case TYPE_STRING:
-		data += CheckSTRType(*info);
+		if (CheckSTRType(*info) == "")
+		{
+			data = "";
+		}
+		else { data = CheckSTRType(*info); }
 		break;
 	}
 
 	if (info->format.Compare(_T("time"))==0)
 	{
-		CString currentDate = time((int)bit);
-		data += currentDate;
+		if (bit > 0)
+		{
+			CString currentDate = time((int)bit);
+			data += currentDate;
+		}
+		else { data = ""; }
 	}
 
 	else if(info->format.Find(_T("f")) !=-1) {
-		data.Format(_T("%.3f"), bit);
+		if (bit > 0)
+		{
+			data.Format(_T("%.3f"), bit);
+		}
+		else { data = ""; }
 	}
 	return data;
 }
 
 void CASFdataDlg::SaveData()
 {
-	CString data;
+	CString data = "";
 	for (int k = 0; k < TYPE_MAX; k++) {
 		for (int i = 0; i < mList[k].GetCount(); i++) {
-			data += mList[k].GetAt(mList[k].FindIndex(i)).text;
-			data += "=";
-			data += GetMapData(k, &mList[k].GetAt(mList[k].FindIndex(i)));
-			data += "\n";
+
+			CString check_data;
+			check_data += mList[k].GetAt(mList[k].FindIndex(i)).text;
+			check_data += "=";
+			check_data += GetMapData(k, &mList[k].GetAt(mList[k].FindIndex(i)));
+			check_data += "\n";
+			if (GetMapData(k, &mList[k].GetAt(mList[k].FindIndex(i))) == ""|| GetMapData(k, &mList[k].GetAt(mList[k].FindIndex(i))).GetLength() >40)
+			{
+				check_data = "";
+			}
+			data += check_data;
 		}
 	}
 	SaveFile(data);
@@ -900,9 +933,13 @@ void CASFdataDlg::SaveFile(CString value)
 	
 	if (m_SaveMode == 0)
 	{
-		FILE* pFile = fopen("data.txt", "w");
-		char* chdata = ToChar(value);
-		fprintf(pFile, chdata);
+		FILE* pFile;
+		fopen_s(&pFile,"data.txt", "w,ccs=UTF-8");
+		//FILE* pFile = fopen("data.txt", "w"); // ANSI txt파일로 저장
+		//char* chdata = ToChar(value);
+		CStringW strw(value);
+		wchar_t* chdata = (wchar_t*)(const wchar_t*)strw;
+		fwprintf(pFile,chdata);
 		fclose(pFile);
 	}
 	else
@@ -917,6 +954,7 @@ void CASFdataDlg::SaveFile(CString value)
 		fclose(pFile);
 
 	}
+
 
 }
 
@@ -948,12 +986,16 @@ void CASFdataDlg::InItStruct(MapInfo* info)
 // 창 만들기
 void CASFdataDlg::ASF_vCreate()
 {
-
+	IniLoad();
 }
 
 // 윈도우 삭제
 void CASFdataDlg::ASF_vDestroy()
-{}
+{
+	delete []m_tpMData;
+	delete[] m_tpBMData;
+	delete[] m_tpSTRData;
+}
 
 //윈도우 출력
 void CASFdataDlg::ASF_vShow() {}
@@ -970,9 +1012,12 @@ void CASFdataDlg::ASF_vPaint() {}
 // 윈도우사이즈
 void CASFdataDlg::ASF_vSize() {}
 
+//
 S32 CASFdataDlg::ASF_nWndProc()
 {
 	S32 s32_bit = 0;
 	return s32_bit;
 }
+
+// 입력받은 키
 void CASFdataDlg::ASF_vKeyData() {}
